@@ -4,6 +4,8 @@ class Text:
     Runtime = """import sys
 import importlib.machinery
 import importlib.util
+import os
+import Frameworks.Logger as Logger
 
 class AppRuntime():
     def loadConfig(self):
@@ -24,13 +26,25 @@ class AppRuntime():
         self.SET_MUTE     = False           # disable sound play
 
     def launch(self):
-        if self.IS_DEVMODE:
+        if sys.argv[-1].endswith('.app'):
+            self.APP_PATH = sys.argv[-1]
+        
+        self.APP_PATH = os.path.abspath(self.APP_PATH)
+
+        if sys.argv[-1].endswith('.py'):
             spec = importlib.util.spec_from_file_location("loaded_module", self.APP_PATH)
+            print(self.APP_PATH)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
-        else:
+        
+        elif sys.argv[-1].endswith('.app'):
             loader = importlib.machinery.SourcelessFileLoader("loaded_module", self.APP_PATH)
             module = loader.load_module()
+
+        else:
+            Logger.output('Unsupported executable format', type=Logger.Type.ERROR)
+            exit()
+
 
         module.Application(self)
 
@@ -227,14 +241,36 @@ class Application:
     def __init__(self, args):
         Logger.output('Hello, World!')"""
     
-    Build = """import py_compile
+    Build = """make = {
+    'Sources/example.py': 'Releases/example.app',
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import py_compile
 import os
 import Frameworks.Logger as Logger
 import sys
-
-make = {
-    'Sources/example.py': 'Releases/example.app',
-}
 
 Logger.output('Starting project build...')
 
@@ -256,6 +292,7 @@ for src, dst in make.items():
     current += 1
 
 Logger.output(f"Project build complete.")
+
 """
 
 
