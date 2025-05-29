@@ -4,95 +4,109 @@ class Text:
     Runtime = """import sys
 import importlib.machinery
 import importlib.util
-import os
 import Frameworks.Logger as Logger
+from dataclasses import dataclass
+
+@dataclass
+class Configuation:
+    IS_DEVMODE   = True             
+    APP_PATH     = 'Sources/example.py'    # fallback path
+
+    IS_LOWGPU    = False           # disable animation
+    UI_SCALE     = 1.3             # scale of UI
+    UI_FPS       = 200             # animation fps
+    UI_THEME     = 'dark' 
+    UI_LOCALE    = 'zh'    
+    UI_ANIMATIME = 500
+    UI_FAMILY    = '源流黑体 CJK'
+    SET_USER     = 'root'
+    SET_UID      = 1000
+    SET_MUTE     = False           # disable sound play
 
 class AppRuntime():
-    def loadConfig(self):
-        self.IS_DEVMODE   = True            # run source code
-        # self.IS_DEVMODE = False           # run compiled code
-
-        self.APP_PATH     = 'Sources/example.py'    # path
-                                    
-        self.IS_LOWGPU    = False           # disable animation
-        self.UI_SCALE     = 1.3             # scale of UI
-        self.UI_FPS       = 200             # animation fps
-        self.UI_THEME     = 'dark' 
-        self.UI_LOCALE    = 'zh'    
-        self.UI_ANIMATIME = 500
-        self.UI_FAMILY    = '源流黑体 CJK'
-        self.SET_USER     = 'root'
-        self.SET_UID      = 1000
-        self.SET_MUTE     = False           # disable sound play
-
-    def launch(self):
-        if sys.argv[-1].endswith('.app'):
-            self.APP_PATH = sys.argv[-1]
-        
-        self.APP_PATH = os.path.abspath(self.APP_PATH)
-
+    def getApp(self):
         if sys.argv[-1].endswith('.py'):
-            spec = importlib.util.spec_from_file_location("loaded_module", self.APP_PATH)
-            print(self.APP_PATH)
+            spec = importlib.util.spec_from_file_location("loaded_module", self.config.APP_PATH)
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
         
         elif sys.argv[-1].endswith('.app'):
-            loader = importlib.machinery.SourcelessFileLoader("loaded_module", self.APP_PATH)
+            loader = importlib.machinery.SourcelessFileLoader("loaded_module", self.config.APP_PATH)
             module = loader.load_module()
 
         else:
             Logger.output('Unsupported executable format', type=Logger.Type.ERROR)
             exit()
 
-
-        module.Application(self)
+        return module
 
     def __init__(self):
-        self.loadConfig()
+        self.config = Configuation()
 
-        if self.IS_LOWGPU:
-            self.UI_ANIMATIME = 0
-        
-        self.launch()
-            
-AppRuntime()"""
+        if self.config.IS_DEVMODE:
+            Logger.output(f"Launching app: {self.config.APP_PATH}", type=Logger.Type.INFO)
+
+        if self.config.IS_LOWGPU:
+            self.config.UI_ANIMATIME = 0
+
+        self.target = self.getApp()
+
+
+if __name__ == "__main__":
+    runtime = AppRuntime()
+    runtime.target.Application(runtime.config)"""
     
     Logger = """import datetime
 import inspect
 import sys
 import re
-
+import os
 from colorama import Fore, Style, Back, init
 
-init()
+init(autoreset=True)
 
-log = []
-
-class Type():
-    INFO = f'{Back.BLUE} INFO {Back.RESET}'
+class Type:
+    INFO  = f'{Back.BLUE} INFO {Back.RESET}'
     ERROR = f'{Back.RED}{Style.BRIGHT} FAIL {Back.RESET}{Fore.RED}'
-    WARN = f'{Back.YELLOW} WARN {Back.RESET}{Fore.YELLOW}'
+    WARN  = f'{Back.YELLOW} WARN {Back.RESET}{Fore.YELLOW}'
     DEBUG = f'{Back.MAGENTA} DEBG {Back.RESET}'
 
-with open('latest.log', 'w'):
-    pass
+_log_history = []
+_log_file = 'latest.log'
 
-def output(value: str, end: str = "\\n", type: str = Type.INFO):
-    global log
+try:
+    with open(_log_file, 'w'):
+        pass
+except Exception as e:
+    print(f"Error initializing log file: {e}", file=sys.stderr)
 
-    now = datetime.datetime.now()
-    sys.stdout.write(f"{Back.GREEN} {now.strftime('%H:%M:%S')} {Back.CYAN} " +
-                     inspect.stack()[1].filename.replace('\\\\', '/').split('/')[-1][:-3] + f" {type} {value} {Style.RESET_ALL}")
-    type = re.compile('\\x1B(?:[@-Z\\\\\\\\-_]|\\\\[[0-?]*[ -/]*[@-~])').sub('', type)
-    moduleName = inspect.stack()[1].filename.replace('\\\\', '/').split('/')[-1][:-3]
-    log.append(f"{now.strftime('%H:%M:%S')} {moduleName}{type}{value}")
+def _get_caller_info():
+    frame = inspect.stack()[2]
+    filename = os.path.basename(frame.filename)
+    module_name = os.path.splitext(filename)[0]
+    return module_name
 
-    with open('latest.log', 'a') as f:
-        f.write(f"{now.strftime('%H:%M:%S')} {moduleName}{type}{value}\\n")
+def _strip_ansi(text: str) -> str:
+    ansi_escape = re.compile(r'\\x1B(?:[@-Z\\\\-_]|\\[[0-?]*[ -/]*[@-~])')
+    return ansi_escape.sub('', text)
 
-    sys.stdout.write(f'{end}')
-    sys.stdout.flush()
+def output(message: str, *, end: str = '\\n', type: str = Type.INFO):
+    now = datetime.datetime.now().strftime('%H:%M:%S')
+    module_name = _get_caller_info()
+
+    formatted = f"{Back.GREEN} {now} {Back.CYAN} {module_name} {type} {message} {Style.RESET_ALL}"
+    print(formatted, end=end)
+
+    plain_level = _strip_ansi(type)
+    log_entry = f"{now} {module_name} {plain_level} {message}"
+    _log_history.append(log_entry)
+
+    try:
+        with open(_log_file, 'a') as f:
+            f.write(log_entry + '\\n')
+    except Exception as e:
+        print(f"Error writing to log: {e}", file=sys.stderr)
+
 """
     
     Utils = """import datetime
@@ -261,37 +275,33 @@ class Application:
 
 
 
-
-
-
-
-
-
-import py_compile
 import os
-import Frameworks.Logger as Logger
 import sys
+import py_compile
+import Frameworks.Logger as Logger
 
-Logger.output('Starting project build...')
+def build_project(build_map: dict[str, str]):
+    Logger.output('Starting project build...')
+    total = len(build_map)
 
-total = len(make)
-current = 1
+    for idx, (src, dst) in enumerate(build_map.items(), start=1):
+        if not os.path.exists(src):
+            Logger.output(f"[{idx}/{total}] Source file not found: {src}, skipping...", type=Logger.Type.ERROR)
+            sys.exit(1)
 
-for src, dst in make.items():
-    if not os.path.exists(src):
-        Logger.output(f"[{current}/{total}] Source file not found: {src}, skipping...", type=Logger.Type.ERROR)
-        sys.exit()
+        try:
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            py_compile.compile(src, cfile=dst, doraise=True)
+            Logger.output(f"[{idx}/{total}] {src} -> {dst}", type=Logger.Type.INFO)
+        except py_compile.PyCompileError as e:
+            Logger.output(f"[{idx}/{total}] Syntax error in {src}:\\n{e}", type=Logger.Type.ERROR)
+            sys.exit(1)
 
-    try:
-        py_compile.compile(src, cfile=dst, doraise=True)
-        Logger.output(f"[{current}/{total}] {src} -> {dst}", type=Logger.Type.INFO)
-    except py_compile.PyCompileError as e:
-        Logger.output(f"[{current}/{total}] Syntax error in {src}:\\n{e}", type=Logger.Type.ERROR)
-        sys.exit()
-    
-    current += 1
+    Logger.output('Project build complete.')
 
-Logger.output(f"Project build complete.")
+if __name__ == "__main__":
+    build_project(make)
+
 
 """
 
