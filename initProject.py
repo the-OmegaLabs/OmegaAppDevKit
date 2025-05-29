@@ -305,10 +305,6 @@ if __name__ == "__main__":
 
 """
 
-
-os.makedirs('Application', exist_ok=True)
-os.chdir('Application')
-
 os.makedirs('Releases', exist_ok=True)
 os.makedirs('Frameworks', exist_ok=True)
 os.makedirs('Sources', exist_ok=True)
