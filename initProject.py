@@ -405,6 +405,109 @@ if __name__ == "__main__":
 
 """
 
+    Ignore = """
+########################
+    
+
+
+########################
+
+# Project
+initProject.py
+*.log
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+*.pyc
+
+# Virtual environments
+env/
+venv/
+.venv/
+
+# pipenv
+Pipfile.lock
+
+# Poetry
+poetry.lock
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# Pytest
+.pytest_cache/
+
+# Coverage reports
+htmlcov/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython history
+.history
+
+# PyInstaller
+# Usually these files are written by a python script from a template
+*.manifest
+*.spec
+build
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+
+# Unit test / coverage reports
+.tox/
+.nox/
+
+# Editor
+.vscode/
+.idea/
+
+# Darwin
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+
+# dotenv
+.env
+.env.*
+
+# SQLite
+*.sqlite3
+
+# Editor backups
+*~
+*.swp
+*.swo
+"""
+
 os.makedirs('Releases', exist_ok=True)
 os.makedirs('Frameworks', exist_ok=True)
 os.makedirs('Sources', exist_ok=True)
@@ -420,6 +523,9 @@ with open('Frameworks/Device.py', 'w', encoding='utf-8') as f:
 
 with open('Sources/example.py', 'w', encoding='utf-8') as f:
     f.write(Text.Example)
+
+with open('.gitignore', 'w', encoding='utf-8') as f:
+    f.write(Text.Ignore)
 
 with open('run.py', 'w', encoding='utf-8') as f:
     f.write(Text.Runtime)
