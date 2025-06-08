@@ -13,15 +13,14 @@ class Configuation:
     APP_PATH     = 'Sources/example.py'    # fallback path
 
     IS_LOWGPU    = False           # disable animation
-    UI_SCALE     = 1.3             # scale of UI
-    UI_FPS       = 200             # animation fps
+    UI_SCALE     = 1               # scale of UI
+    UI_FPS       = 500             # animation fps
     UI_THEME     = 'dark' 
     UI_LOCALE    = 'zh'    
-    UI_ANIMATIME = 500
+    UI_ANIMATIME = 500 
     UI_FAMILY    = '源流黑体 CJK'
     SET_USER     = 'root'
-    SET_UID      = 1000
-    SET_MUTE     = False           # disable sound play
+    SET_UID      = 0
 
 class AppRuntime():
     def getApp(self):
