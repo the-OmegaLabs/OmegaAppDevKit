@@ -24,7 +24,7 @@ class Configuation:
     SET_UID      = 0
 
 class AppRuntime():
-    def getApp(self):
+    def loadApp(self):
         if sys.argv[-1].endswith('.py'):
             spec = importlib.util.spec_from_file_location("loaded_module", self.config.APP_PATH)
             module = importlib.util.module_from_spec(spec)
