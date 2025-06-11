@@ -559,4 +559,4 @@ with open('omake.py', 'w', encoding='utf-8') as f:
     f.write(Text.Build)
 
 with open('requirements.txt', 'w', encoding='utf-8') as f:
-    f.write(Text.Requirement)
+    f.write(Text.Requirements)
