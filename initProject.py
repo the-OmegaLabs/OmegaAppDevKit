@@ -22,6 +22,7 @@ class Configuation:
     UI_FAMILY    = '源流黑体 CJK'
     SET_USER     = 'root'
     SET_UID      = 0
+    SET_MUTE     = False
 
 class AppRuntime():
     def loadApp(self):
