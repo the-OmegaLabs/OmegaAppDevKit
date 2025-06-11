@@ -6,6 +6,7 @@ import importlib.machinery
 import importlib.util
 import Frameworks.Logger as Logger
 from dataclasses import dataclass
+import traceback
 
 @dataclass
 class Configuation:
@@ -48,12 +49,27 @@ class AppRuntime():
         if self.config.IS_LOWGPU:
             self.config.UI_ANIMATIME = 0
 
-        self.target = self.getApp()
+        self.target = self.loadApp()
 
+
+def tracebackProcess(exception: Exception):
+    tracelist = ''.join(traceback.format_exception(exception)).split('\\n')
+
+    try:
+        for i in tracelist[:-1]:
+            Logger.output(i, type=Logger.Type.ERROR)
+    except:
+        for i in tracelist[:-1]:
+            print(f'FAIL: {i}')
 
 if __name__ == "__main__":
-    runtime = AppRuntime()
-    runtime.target.Application(runtime.config)"""
+    try:
+        runtime = AppRuntime()
+        runtime.target.Application(runtime.config)
+    except Exception as e:
+        tracebackProcess(e)
+        
+"""
     
     Device = """import platform
 import subprocess
@@ -212,7 +228,7 @@ def output(message: str, *, end: str = '\\n', type: str = Type.INFO):
 import sys
 import threading
 from lunardate import LunarDate
-import playsound
+import datetime
 from PIL import (
     Image, 
     ImageFilter, 
@@ -507,6 +523,16 @@ Desktop.ini
 *.swo
 """
 
+    Requirement = """
+cpuinfo
+psutil
+colorama
+lunardate
+wheel
+setuptools
+playsound==1.2.2
+"""
+
 os.makedirs('Releases', exist_ok=True)
 os.makedirs('Frameworks', exist_ok=True)
 os.makedirs('Sources', exist_ok=True)
@@ -531,3 +557,6 @@ with open('run.py', 'w', encoding='utf-8') as f:
 
 with open('omake.py', 'w', encoding='utf-8') as f:
     f.write(Text.Build)
+
+with open('requirement.txt', 'w', encoding='utf-8') as f:
+    f.write(Text.Requirement)
